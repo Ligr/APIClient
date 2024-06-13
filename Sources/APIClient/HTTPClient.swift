@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol HTTPClient {
+public protocol HTTPClient: Sendable {
     func execute(_ request: URLRequest) async throws -> (Data, URLResponse)
 }
 

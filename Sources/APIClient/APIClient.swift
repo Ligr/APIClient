@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol APIClient {
+public protocol APIClient: Sendable {
     func request<Endpoint: APIEndpoint>(_ endpoint: Endpoint) async throws
     func request<Endpoint: APIEndpoint>(_ endpoint: Endpoint) async throws -> Endpoint.ResultType where Endpoint.ResultType: Decodable
     func request<Endpoint: APIEndpoint, DataType: Encodable>(_ endpoint: Endpoint, data: DataType) async throws
