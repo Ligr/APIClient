@@ -9,6 +9,10 @@ public protocol HTTPClient: Sendable {
 
 public struct HTTPClientImpl: HTTPClient {
 
+    enum Errors: Error {
+        case dataIsMissing
+    }
+
     private let urlSession: URLSession
 
     public init(urlSession: URLSession = .shared) {
@@ -43,3 +47,23 @@ public struct HTTPClientImpl: HTTPClient {
         return data
     }
 }
+
+#if canImport(FoundationNetworking)
+// FoundationNetworking is missing this API
+extension URLSession {
+    public func data(for request: URLRequest) async throws -> (Data, URLResponse) {
+        try await withUnsafeThrowingContinuation { continuation in
+            let task = self.dataTask(with: request) { data, response, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else if let data, let response {
+                    continuation.resume(returning: (data, response))
+                } else {
+                    continuation.resume(throwing: HTTPClientImpl.Errors.dataIsMissing)
+                }
+            }
+            task.resume()
+        }
+    }
+}
+#endif
