@@ -8,6 +8,7 @@ public enum HTTPRequestMethod: String {
     case post = "POST"
     case delete = "DELETE"
     case patch = "PATCH"
+    case put = "PUT"
 }
 
 public protocol APIEndpoint {
