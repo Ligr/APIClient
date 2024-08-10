@@ -3,7 +3,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public enum HTTPRequestMethod: String {
+public enum HTTPRequestMethod: String, Sendable {
     case get = "GET"
     case post = "POST"
     case delete = "DELETE"
