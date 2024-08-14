@@ -24,7 +24,8 @@ let package = Package(
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "APIClient",
-            dependencies: [.product(name: "LRUCache", package: "LRUCache")]
+            dependencies: [.product(name: "LRUCache", package: "LRUCache")],
+            swiftSettings: [.enableExperimentalFeature("StrictConcurrency")]
         ),
         .testTarget(
             name: "APIClientTests",

@@ -1,7 +1,7 @@
 import Foundation
 import LRUCache
 
-public actor HTTPResponseCache<ItemType> {
+public actor HTTPResponseCache<ItemType: Sendable> {
 
     private struct CacheItem<CacheValue> {
         let date: Date
@@ -45,7 +45,7 @@ public actor HTTPResponseCache<ItemType> {
     ///   - key: value cache key
     ///   - valueAction: action to be performed to get new value
     /// - Returns: value either from the cache or newly created using "valueAction"
-    public func value(forKey key: String, valueAction: @escaping () async throws -> ItemType) async throws -> ItemType {
+    public func value(forKey key: String, valueAction: @escaping @Sendable () async throws -> ItemType) async throws -> ItemType {
         // try to return cached value first
         if let cachedValue = value(forKey: key) {
             return cachedValue
