@@ -13,15 +13,22 @@ let package = Package(
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "APIClient",
-            targets: ["APIClient"]),
+            targets: ["APIClient"]
+        )
+    ],
+    dependencies: [
+        .package(url: "https://github.com/nicklockwood/LRUCache.git", from: "1.0.7")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "APIClient"),
+            name: "APIClient",
+            dependencies: [.product(name: "LRUCache", package: "LRUCache")]
+        ),
         .testTarget(
             name: "APIClientTests",
-            dependencies: ["APIClient"]),
+            dependencies: ["APIClient"]
+        )
     ]
 )
