@@ -36,7 +36,7 @@ public struct APIClientImpl: APIClient {
         do {
             return try jsonDecoder.decode(Endpoint.ResultType.self, from: data.0)
         } catch {
-            print("❌ failed to decode model '\(Endpoint.ResultType.self)' error: \(error)")
+            print("❌ failed to decode model '\(Endpoint.ResultType.self)' error: \(error), data: \(String(data: data.0, encoding: .utf8) ?? "nil")")
             throw error
         }
     }
@@ -52,7 +52,7 @@ public struct APIClientImpl: APIClient {
         do {
             return try jsonDecoder.decode(Endpoint.ResultType.self, from: data.0)
         } catch {
-            print("❌ failed to decode model '\(Endpoint.ResultType.self)' error: \(error)")
+            print("❌ failed to decode model '\(Endpoint.ResultType.self)' error: \(error), data: \(String(data: data.0, encoding: .utf8) ?? "nil")")
             throw error
         }
     }

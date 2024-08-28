@@ -25,10 +25,8 @@ public actor HTTPResponseCache<ItemType: Sendable> {
     public func value(forKey key: String) -> ItemType? {
         if let cachedItem = cache.value(forKey: key) {
             if abs(cachedItem.date.timeIntervalSinceNow) > timeout {
-                print("cache expired for: \(key)")
                 cache.removeValue(forKey: key)
             } else {
-                print("cache hit for: \(key)")
                 return cachedItem.value
             }
         }
@@ -36,7 +34,6 @@ public actor HTTPResponseCache<ItemType: Sendable> {
     }
 
     public func setValue(_ value: ItemType, forKey key: String) {
-        print("cache added for: \(key)")
         cache.setValue(.init(value: value), forKey: key)
     }
 
