@@ -10,19 +10,13 @@ public protocol APIClient: Sendable {
 public struct APIClientImpl: APIClient {
 
     private let httpClient: HTTPClient
-    private let jsonDecoder: JSONDecoder = {
-        let decoder = JSONDecoder()
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        decoder.dateDecodingStrategy = .formatted(formatter)
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        return decoder
-    }()
     private let jsonEncoder: JSONEncoder
+    private let jsonDecoder: JSONDecoder
 
-    public init(httpClient: HTTPClient = HTTPClientImpl(), jsonEncoder: JSONEncoder = .init()) {
+    public init(httpClient: HTTPClient = HTTPClientImpl(), jsonEncoder: JSONEncoder = .init(), jsonDecoder: JSONDecoder = .init()) {
         self.httpClient = httpClient
         self.jsonEncoder = jsonEncoder
+        self.jsonDecoder = jsonDecoder
     }
 
     public func request<Endpoint: APIEndpoint>(_ endpoint: Endpoint) async throws {
