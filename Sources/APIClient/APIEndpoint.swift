@@ -59,4 +59,18 @@ public extension APIEndpoint {
         }
         return request
     }
+
+    func request(form: [String: String]) -> URLRequest {
+        var request = self.request
+        let urlEncodedData = form.map { key, value in
+            return "\(key)=\(value.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
+        }.joined(separator: "&")
+        guard let postData = urlEncodedData.data(using: .utf8) else {
+            assertionFailure("Unable to encode form data")
+            return request
+        }
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        request.httpBody = postData
+        return request
+    }
 }

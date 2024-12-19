@@ -40,6 +40,11 @@ public struct APIClientImpl: APIClient {
         _ = try await httpClient.execute(request)
     }
 
+    public func request<Endpoint: APIEndpoint>(_ endpoint: Endpoint, form: [String: String]) async throws {
+        let request = endpoint.request(form: form)
+        _ = try await httpClient.execute(request)
+    }
+
     public func request<Endpoint: APIEndpoint, DataType: Encodable>(_ endpoint: Endpoint, data: DataType) async throws -> Endpoint.ResultType where Endpoint.ResultType: Decodable {
         let request = endpoint.request(json: data, encoder: jsonEncoder)
         let data = try await httpClient.execute(request)
