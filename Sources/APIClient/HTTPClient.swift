@@ -4,7 +4,7 @@ import FoundationNetworking
 #endif
 
 public protocol HTTPClient: Sendable {
-    func execute(_ request: URLRequest) async throws -> (Data, URLResponse)
+    func execute(_ request: URLRequest) async throws -> (Data, HTTPURLResponse)
 }
 
 public struct HTTPClientImpl: HTTPClient {
@@ -19,12 +19,13 @@ public struct HTTPClientImpl: HTTPClient {
         self.urlSession = urlSession
     }
 
-    public func execute(_ request: URLRequest) async throws -> (Data, URLResponse) {
-        let data: (Data, URLResponse)
+    public func execute(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        let data: Data
+        let urlResponse: URLResponse
         #if DEBUG
         do {
-            data = try await urlSession.data(for: request)
-            if let str = String(data: data.0, encoding: .utf8) {
+            (data, urlResponse) = try await urlSession.data(for: request)
+            if let str = String(data: data, encoding: .utf8) {
                 print(str)
             }
         } catch {
@@ -32,19 +33,19 @@ public struct HTTPClientImpl: HTTPClient {
             throw error
         }
         #else
-        data = try await urlSession.data(for: request)
+        (data, urlResponse) = try await urlSession.data(for: request)
         #endif
-        guard let urlResponse = data.1 as? HTTPURLResponse, 200 ... 299 ~= urlResponse.statusCode else {
+        guard let httpUrlResponse = urlResponse as? HTTPURLResponse, 200 ... 299 ~= httpUrlResponse.statusCode else {
             print("❌ HTTP request '\(request.url?.absoluteString ?? "nil")' failed")
             #if DEBUG
-            if let str = String(data: data.0, encoding: .utf8) {
+            if let str = String(data: data, encoding: .utf8) {
                 print(str)
             }
             #endif
             let error = URLError(.badServerResponse)
             throw error
         }
-        return data
+        return (data, httpUrlResponse)
     }
 }
 
