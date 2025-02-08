@@ -22,26 +22,27 @@ public struct HTTPClientImpl: HTTPClient {
     public func execute(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
         let data: Data
         let urlResponse: URLResponse
-        #if DEBUG
+//        #if DEBUG
         do {
+            print("[\(Date())] HTTP request: \(request)")
             (data, urlResponse) = try await urlSession.data(for: request)
-            if let str = String(data: data, encoding: .utf8) {
-                print(str)
-            }
+//            if let str = String(data: data, encoding: .utf8) {
+//                print(str)
+//            }
         } catch {
             print("❌ \(error.localizedDescription)")
             throw error
         }
-        #else
-        (data, urlResponse) = try await urlSession.data(for: request)
-        #endif
+//        #else
+//        (data, urlResponse) = try await urlSession.data(for: request)
+//        #endif
         guard let httpUrlResponse = urlResponse as? HTTPURLResponse, 200 ... 299 ~= httpUrlResponse.statusCode else {
             print("❌ HTTP request '\(request.url?.absoluteString ?? "nil")' failed")
-            #if DEBUG
+//            #if DEBUG
             if let str = String(data: data, encoding: .utf8) {
-                print(str)
+                print("❌ \(str)")
             }
-            #endif
+//            #endif
             let error = URLError(.badServerResponse)
             throw error
         }
