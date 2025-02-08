@@ -24,7 +24,8 @@ public struct HTTPClientImpl: HTTPClient {
         let urlResponse: URLResponse
 //        #if DEBUG
         do {
-            print("[\(Date())] HTTP request: \(request)")
+            let body = String(data: request.httpBody ?? Data(), encoding: .utf8)
+            print("[\(Date())] HTTP request: \(request), body: \(body ?? "nil")")
             (data, urlResponse) = try await urlSession.data(for: request)
 //            if let str = String(data: data, encoding: .utf8) {
 //                print(str)
