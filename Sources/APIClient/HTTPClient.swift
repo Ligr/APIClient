@@ -4,7 +4,7 @@ import FoundationNetworking
 #endif
 
 public protocol HTTPClient: Sendable {
-    func execute(_ request: URLRequest) async throws(APIClientError) -> (Data, HTTPURLResponse)
+    func execute(_ request: URLRequest) async throws(APIClientError) -> (data: Data, response: HTTPURLResponse)
 }
 
 public struct HTTPClientImpl: HTTPClient {
@@ -21,7 +21,7 @@ public struct HTTPClientImpl: HTTPClient {
         self.debug = debug
     }
 
-    public func execute(_ request: URLRequest) async throws(APIClientError) -> (Data, HTTPURLResponse) {
+    public func execute(_ request: URLRequest) async throws(APIClientError) -> (data: Data, response: HTTPURLResponse) {
         let data: Data
         let urlResponse: URLResponse
         if debug {
@@ -64,7 +64,7 @@ public struct HTTPClientImpl: HTTPClient {
             default: throw .unsupportedStatusCode
             }
         }
-        return (data, httpUrlResponse)
+        return (data: data, response: httpUrlResponse)
     }
 }
 

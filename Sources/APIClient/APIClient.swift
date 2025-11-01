@@ -8,9 +8,9 @@ public protocol APIClient: Sendable {
     func request<Endpoint: APIEndpoint>(_ endpoint: Endpoint) async throws -> HTTPURLResponse
     @discardableResult
     func request<Endpoint: APIEndpoint, DataType: Encodable>(_ endpoint: Endpoint, data: DataType) async throws -> HTTPURLResponse
-    func request<Endpoint: APIEndpoint>(_ endpoint: Endpoint) async throws -> (Endpoint.ResultType, HTTPURLResponse) where Endpoint.ResultType: Decodable
-    func request<Endpoint: APIEndpoint, DataType: Encodable>(_ endpoint: Endpoint, data: DataType) async throws -> (Endpoint.ResultType, HTTPURLResponse) where Endpoint.ResultType: Decodable
-    func request<Endpoint: APIEndpoint>(_ endpoint: Endpoint, form: [String: String]) async throws -> (Endpoint.ResultType, HTTPURLResponse) where Endpoint.ResultType: Decodable
+    func request<Endpoint: APIEndpoint>(_ endpoint: Endpoint) async throws -> (result: Endpoint.ResultType, response: HTTPURLResponse) where Endpoint.ResultType: Decodable
+    func request<Endpoint: APIEndpoint, DataType: Encodable>(_ endpoint: Endpoint, data: DataType) async throws -> (result: Endpoint.ResultType, response: HTTPURLResponse) where Endpoint.ResultType: Decodable
+    func request<Endpoint: APIEndpoint>(_ endpoint: Endpoint, form: [String: String]) async throws -> (result: Endpoint.ResultType, response: HTTPURLResponse) where Endpoint.ResultType: Decodable
 }
 
 public struct APIClientImpl: APIClient {
@@ -42,30 +42,30 @@ public struct APIClientImpl: APIClient {
         return try await httpClient.execute(request).1
     }
 
-    public func request<Endpoint: APIEndpoint>(_ endpoint: Endpoint) async throws -> (Endpoint.ResultType, HTTPURLResponse) where Endpoint.ResultType: Decodable {
+    public func request<Endpoint: APIEndpoint>(_ endpoint: Endpoint) async throws -> (result: Endpoint.ResultType, response: HTTPURLResponse) where Endpoint.ResultType: Decodable {
         let request = endpoint.request
         return try await requestDecodable(request)
     }
 
-    public func request<Endpoint: APIEndpoint>(_ endpoint: Endpoint, form: [String: String]) async throws -> (Endpoint.ResultType, HTTPURLResponse) where Endpoint.ResultType: Decodable {
+    public func request<Endpoint: APIEndpoint>(_ endpoint: Endpoint, form: [String: String]) async throws -> (result: Endpoint.ResultType, response: HTTPURLResponse) where Endpoint.ResultType: Decodable {
         let request = endpoint.request(form: form)
         return try await requestDecodable(request)
     }
 
-    public func request<Endpoint: APIEndpoint, DataType: Encodable>(_ endpoint: Endpoint, data: DataType) async throws -> (Endpoint.ResultType, HTTPURLResponse) where Endpoint.ResultType: Decodable {
+    public func request<Endpoint: APIEndpoint, DataType: Encodable>(_ endpoint: Endpoint, data: DataType) async throws -> (result: Endpoint.ResultType, response: HTTPURLResponse) where Endpoint.ResultType: Decodable {
         let request = endpoint.request(json: data, encoder: jsonEncoder)
         return try await requestDecodable(request)
     }
 
     // MARK: - Helpers
 
-    private func requestDecodable<ResultType: Decodable>(_ request: URLRequest) async throws -> (ResultType, HTTPURLResponse) {
+    private func requestDecodable<ResultType: Decodable>(_ request: URLRequest) async throws -> (result: ResultType, response: HTTPURLResponse) {
         let data = try await httpClient.execute(request)
         do {
-            let result = try jsonDecoder.decode(ResultType.self, from: data.0)
-            return (result, data.1)
+            let result = try jsonDecoder.decode(ResultType.self, from: data.data)
+            return (result: result, response: data.response)
         } catch {
-            print("❌ failed to decode model '\(ResultType.self)' error: \(error), data: \(String(data: data.0, encoding: .utf8) ?? "nil")")
+            print("❌ failed to decode model '\(ResultType.self)' error: \(error), data: \(String(data: data.data, encoding: .utf8) ?? "nil")")
             throw error
         }
     }
