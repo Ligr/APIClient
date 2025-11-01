@@ -4,7 +4,7 @@ import FoundationNetworking
 #endif
 
 public protocol HTTPClient: Sendable {
-    func execute(_ request: URLRequest) async throws -> (Data, HTTPURLResponse)
+    func execute(_ request: URLRequest) async throws(APIClientError) -> (Data, HTTPURLResponse)
 }
 
 public struct HTTPClientImpl: HTTPClient {
@@ -14,38 +14,55 @@ public struct HTTPClientImpl: HTTPClient {
     }
 
     private let urlSession: URLSession
+    private let debug: Bool
 
-    public init(urlSession: URLSession = .shared) {
+    public init(urlSession: URLSession = .shared, debug: Bool = false) {
         self.urlSession = urlSession
+        self.debug = debug
     }
 
-    public func execute(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+    public func execute(_ request: URLRequest) async throws(APIClientError) -> (Data, HTTPURLResponse) {
         let data: Data
         let urlResponse: URLResponse
-//        #if DEBUG
-        do {
-            let body = String(data: request.httpBody ?? Data(), encoding: .utf8)
-            print("[\(Date())] HTTP request: \(request), body: \(body ?? "nil")")
-            (data, urlResponse) = try await urlSession.data(for: request)
-//            if let str = String(data: data, encoding: .utf8) {
-//                print(str)
-//            }
-        } catch {
-            print("❌ \(error.localizedDescription)")
-            throw error
-        }
-//        #else
-//        (data, urlResponse) = try await urlSession.data(for: request)
-//        #endif
-        guard let httpUrlResponse = urlResponse as? HTTPURLResponse, 200 ... 299 ~= httpUrlResponse.statusCode else {
-            print("❌ HTTP request '\(request.url?.absoluteString ?? "nil")' failed")
-//            #if DEBUG
-            if let str = String(data: data, encoding: .utf8) {
-                print("❌ \(str)")
+        if debug {
+            do {
+                let body = String(data: request.httpBody ?? Data(), encoding: .utf8)
+                print("🛜 [\(Date())] HTTP request: \(request), body: \(body ?? "nil")")
+                (data, urlResponse) = try await urlSession.data(for: request)
+                if let str = String(data: data, encoding: .utf8) {
+                    print("🛜 HTTP response: \(str)")
+                }
+            } catch {
+                print("❌ URLSession error: \(error)")
+                throw .urlSession(error)
             }
-//            #endif
-            let error = URLError(.badServerResponse)
-            throw error
+        } else {
+            do {
+                (data, urlResponse) = try await urlSession.data(for: request)
+            } catch {
+                throw .urlSession(error)
+            }
+        }
+        guard let httpUrlResponse = urlResponse as? HTTPURLResponse else {
+            throw .unknown
+        }
+        guard 200 ... 299 ~= httpUrlResponse.statusCode else {
+            print("❌ HTTP request '\(request.url?.absoluteString ?? "nil")' failed")
+            if debug {
+                if let str = String(data: data, encoding: .utf8) {
+                    print("❌ HTTP response: \(str)")
+                }
+            }
+            switch httpUrlResponse.statusCode {
+            case 400: throw .badRequest
+            case 401: throw .unauthorized
+            case 403: throw .forbidden
+            case 404: throw .notFound
+            case 500: throw .internalServerError
+            case 502: throw .badGateway
+            case 503: throw .serviceUnavailable
+            default: throw .unsupportedStatusCode
+            }
         }
         return (data, httpUrlResponse)
     }

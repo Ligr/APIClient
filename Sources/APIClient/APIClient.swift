@@ -19,8 +19,13 @@ public struct APIClientImpl: APIClient {
     private let jsonEncoder: JSONEncoder
     private let jsonDecoder: JSONDecoder
 
-    public init(httpClient: HTTPClient = HTTPClientImpl(), jsonEncoder: JSONEncoder = .init(), jsonDecoder: JSONDecoder = .init()) {
-        self.httpClient = httpClient
+    public init(
+        httpClient: HTTPClient? = nil,
+        jsonEncoder: JSONEncoder = .init(),
+        jsonDecoder: JSONDecoder = .init(),
+        debug: Bool = false
+    ) {
+        self.httpClient = httpClient ?? HTTPClientImpl(debug: debug)
         self.jsonEncoder = jsonEncoder
         self.jsonDecoder = jsonDecoder
     }
